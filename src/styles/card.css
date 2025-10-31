@@ -1,0 +1,34 @@
+.card {
+    cursor: pointer;
+    user-select: none;
+}
+.card__gallery--thumbs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.card__gallery--thumbs img {
+    aspect-ratio: 1/1;
+    object-fit: cover;
+}
+
+.card__header {
+    margin: 8px 0px 0px 0px; ;
+}
+
+.card__date {
+    color: #969696;
+    font-size: 10px;
+    display: inline;
+}
+
+.card__tags {
+    color: #969696;
+    font-size: 10px;
+    display: inline;
+}
+.card__tags span {
+    margin-left: 6px;
+}

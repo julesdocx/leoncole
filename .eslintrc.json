@@ -1,0 +1,10 @@
+{
+  "extends": "next",
+  "plugins": ["simple-import-sort"],
+  "rules": {
+    "react/no-unescaped-entities": "off",
+    "simple-import-sort/imports": "warn",
+    "simple-import-sort/exports": "warn",
+    "react-hooks/exhaustive-deps": "error"
+  }
+}
