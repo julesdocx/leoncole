@@ -44,15 +44,27 @@ export default defineType({
       options: {
         hotspot: true,
       },
+        fields: [
+          defineField({
+            name: 'caption',
+            type: 'string',
+          }),
+      ],
     }),
-        defineField({
+    defineField({
       name: 'gallery',
       title: 'Gallery',
       type: 'array',
       of: [
         {
           type: 'image',
-          options: { hotspot: true }, // optional: enables focal point editing
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: 'caption',
+              type: 'string',
+            }),
+          ],
         },
       ],
     }),
