@@ -1,207 +1,209 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
+import { AnimatePresence } from 'motion/react'
+import { ArrowUpRight } from 'lucide-react'
 import { urlForImage } from '~/lib/sanity.image'
 import type { Post } from '~/lib/sanity.queries'
-import { motion, AnimatePresence } from 'motion/react'
+import Lightbox from '~/components/LightBox'
+
+type SanityImage = {
+  _type: 'image'
+  asset: { _ref: string; _type: 'reference' }
+  _key?: string
+  alt?: string
+  caption?: string
+}
 
 export default function Card({ 
   post, 
-  expandAll = false,
   onClick,
-  onImageClick,
   isSelected = false,
-  loadingDelay = 0,
   isMobile = false,
-  selectedImageIndex = 0,
-  onImageSelect,
-  allImages = []
 }: { 
   post: Post
-  expandAll?: boolean
   onClick?: () => void
-  onImageClick?: (index: number) => void
   isSelected?: boolean
-  loadingDelay?: number
   isMobile?: boolean
-  selectedImageIndex?: number
-  onImageSelect?: (index: number) => void
-  allImages?: Array<{ image: any; isMain: boolean }>
 }) {
-  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set())
+  const [isHovered, setIsHovered] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  
+  const mainImageUrl = post.mainImage?.asset ? urlForImage(post.mainImage)?.url() : null
+  const galleryImages = post.gallery?.filter(img => img?.asset) || []
+  const previewImages = galleryImages.slice(0, 4)
+  
+  // All images for lightbox (mainImage + gallery)
+  const allImages = [
+    ...(post.mainImage?.asset ? [post.mainImage] : []),
+    ...galleryImages
+  ]
 
-  useEffect(() => {
-    if (!post.gallery || isSelected) return
+  const openLightbox = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setLightboxIndex(index)
+  }
 
-    // Load images progressively with delay
-    post.gallery.forEach((image, index) => {
-      if (!image || !image.asset) return
-      
-      const delay = (loadingDelay * 300) + (index * 100) // 300ms per card, 100ms per image
-      
-      setTimeout(() => {
-        setLoadedImages(prev => new Set(prev).add(index))
-      }, delay)
-    })
-  }, [post.gallery, isSelected, loadingDelay])
+  const lightboxImages: SanityImage[] = allImages.filter(
+  (img): img is SanityImage =>
+    typeof img === 'object' &&
+    '_type' in img &&
+    img._type === 'image' &&
+    'asset' in img
+)
 
   return (
-    <div className="card" onClick={onClick}>
-      <p 
-        className='card__header'
-        style={{
-          fontWeight: isSelected ? 'bold' : 'normal',
-          fontSize: isSelected ? '16px' : '12px',
-          transition: 'font-size 0.2s, font-weight 0.2s'
-        }}
-      >
-        {post.title}
-      </p>
-      <p className="card__date">
-        {new Date(post.date).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        })}
-      </p>
-      
-      {post.tags && post.tags.length > 0 && (
-        <div className="card__tags">
-          {post.tags.map((tag) => (
-            <span key={tag} className="card__tag">
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="p-2"
+    >
+      {/* Card row */}
+      <div className="flex gap-4 w-full sm:w-[500px]">
+        {/* Stacked images */}
+        {mainImageUrl && (
+          <div className="w-56 flex-shrink-0 relative">
+            {/* Background stacked images */}
+            {previewImages.map((img, i) => {
+              const url = urlForImage(img)?.url()
+              if (!url) return null
+              const offset = isHovered || isSelected ? 0 : (previewImages.length - i) * 4
+              return (
+                <div
+                  key={img._key || i}
+                  className="absolute w-full transition-all duration-200"
+                  style={{
+                    top: offset,
+                    left: -offset,
+                    zIndex: i,
+                  }}
+                >
+                  <Image
+                    src={url}
+                    alt=""
+                    width={0}
+                    height={0}
+                    sizes="100vw"
+                    className="w-full h-auto"
+                  />
+                </div>
+              )
+            })}
+            {/* Main image on top */}
+            <div 
+              className={`relative ${isSelected ? 'cursor-zoom-in' : ''}`}
+              style={{ zIndex: previewImages.length + 1 }}
+              onClick={isSelected ? (e) => openLightbox(0, e) : undefined}
+            >
+              <Image
+                src={mainImageUrl}
+                alt={post.title}
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="w-full h-auto"
+              />
+            </div>
+          </div>
+        )}
 
-      {isSelected ? (
-        <>
-          {/* Show body text when selected */}
+        {/* Text content on the right */}
+        <div className="flex flex-col justify-between py-1 flex-1">
+          <div>
+            <p 
+              className={`mb-1 transition-all duration-200 ${
+                isSelected ? 'font-bold text-base' : 'font-normal text-sm'
+              }`}
+            >
+              {post.title}
+            </p>
+            <p className="text-xs text-gray-500 mb-2">
+              {new Date(post.date).getFullYear()}
+            </p>
+            
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {post.tags.map((tag) => (
+                  <span 
+                    key={tag} 
+                    className="text-xs px-2 py-0.5 bg-gray-100 rounded-full text-gray-600"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* View button */}
+          <button className="self-end mt-2 text-xs flex items-center gap-1 border border-gray-300 py-0.5 px-2 hover:bg-gray-50">
+            <span className={isHovered ? 'underline' : ''}>{isSelected ? 'Hide' : 'View'}</span>
+            <ArrowUpRight 
+              size={14} 
+              className={`transition-transform duration-200 ${isSelected ? 'rotate-90' : isHovered ? 'rotate-45' : ''}`}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Expanded content */}
+      {isSelected && (
+        <div className="w-full sm:w-[500px] mt-6 space-y-6">
+          {/* Body text */}
           {post.body && (
-            <div className="card__content">
+            <div className="prose prose-sm">
               <PortableText value={post.body} />
             </div>
           )}
 
-          {/* Show gallery in card on mobile - EXACT COPY of mainDiv functionality */}
-          {isMobile && allImages.length > 0 && (
-            <div style={{ marginTop: '10px' }}>
-              {/* Large display of selected image */}
-              {(() => {
-                const selectedImageData = allImages[selectedImageIndex]
-                
-                if (!selectedImageData) return null
-                
-                const imageUrl = urlForImage(selectedImageData.image)?.url()
-                if (!imageUrl) return null
-                
-                return (
-                  <div className="image-container" style={{ marginBottom: '1rem' }}>
-                    <Image
-                      src={imageUrl}
-                      alt={selectedImageData.isMain ? post.title : `Gallery image`}
-                      width={0}
-                      height={0}
-                      sizes="100vw"
-                      style={{
-                        width: '100%',  
-                        height: 'auto',
-                        maxHeight: '400px',
-                        objectFit: 'contain'
-                      }}
-                    />
-                  </div>
-                )
-              })()}
-
-              {/* Thumbnail grid */}
-              <div className="card__gallery--thumbs">
-                {allImages.map((imageData, i) => {
-                  const imageUrl = urlForImage(imageData.image)?.url()
-                  if (!imageUrl) return null
-                  
-                  const isCurrentlySelected = i === selectedImageIndex
-                  
-                  return (
-                    <div
-                      key={i}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onImageSelect?.(i)
-                      }}
-                      style={{
-                        cursor: 'pointer',
-                        transition: 'box-shadow 0.2s',
-                        boxShadow: isCurrentlySelected ? '0 4px 8px rgba(0, 0, 0, 0.3)' : 'none'
-                      }}
-                    >
-                      <Image
-                        src={imageUrl}
-                        alt={imageData.isMain ? post.title : `Thumbnail ${i}`}
-                        width={100}
-                        height={100}
-                        quality={50}
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover',
-                          aspectRatio: '1/1',
-                          display: 'block'
-                        }}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </>
-      ) : (
-        // Show gallery thumbnails when not selected
-        post.gallery && post.gallery.length > 0 && (
-          <div className="card__gallery--thumbs">
-            {post.gallery
-              .filter((image) => image && image.asset)
-              .map((image, i) => {
-                const imageUrl = urlForImage(image)?.url()
-                const shouldLoad = loadedImages.has(i)
-                
-                if (!imageUrl) return null
-                
+          {/* Gallery images with captions */}
+          {galleryImages.length > 0 && (
+            <div className="space-y-4">
+              {galleryImages.map((img, i) => {
+                const url = urlForImage(img)?.url()
+                if (!url) return null
+                const hasCaption = !!img.caption
+                // Index in allImages is i+1 because mainImage is at 0
+                const lightboxIdx = post.mainImage?.asset ? i + 1 : i
                 return (
                   <div 
-                    key={image._key || i}
-                    style={{
-                      backgroundColor: '#f0f0f0',
-                      aspectRatio: '1/1',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}
+                    key={img._key || i} 
+                    className={`${hasCaption ? 'flex gap-4' : ''} cursor-zoom-in`}
+                    onClick={(e) => openLightbox(lightboxIdx, e)}
                   >
-                    {shouldLoad && (
+                    <div className={hasCaption ? 'w-56 flex-shrink-0' : 'w-full'}>
                       <Image
-                        src={imageUrl}
-                        alt={image.alt || `Gallery image ${i + 1}`}
-                        width={100}
-                        height={100}
-                        quality={10}
-                        loading="lazy"
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover',
-                          aspectRatio: '1/1',
-                          display: 'block'
-                        }}
+                        src={url}
+                        alt={img.alt || ''}
+                        width={0}
+                        height={0}
+                        sizes="100vw"
+                        className="w-full h-auto"
                       />
+                    </div>
+                    {hasCaption && (
+                      <p className="text-xs text-gray-500 py-1">{img.caption}</p>
                     )}
                   </div>
                 )
               })}
-          </div>
-        )
+            </div>
+          )}
+        </div>
       )}
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <Lightbox
+            images={lightboxImages}
+            currentIndex={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+            onNavigate={setLightboxIndex}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

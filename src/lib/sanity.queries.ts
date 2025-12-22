@@ -12,7 +12,10 @@ export const postsQuery = groq`*[_type == "post" && defined(slug.current)] | ord
   slug,
   date,
   mainImage,
-  gallery,
+  gallery[]{
+    ...,
+    caption
+  },
   body,
   tags 
 }`
@@ -56,5 +59,30 @@ export interface Post {
     _key?: string
     _type: 'image'
     alt?: string
+    caption?: string
   }[]
+}
+
+export const siteSettingsQuery = groq`*[_type == "siteSettings"][0] {
+  name,
+  bioText,
+  email,
+  phone,
+  socials
+}`
+
+export interface SiteSettings {
+  name: string
+  bioText?: string
+  email?: string
+  phone?: string
+  socials?: {
+    platform: 'instagram' | 'linkedin' | 'twitter' | 'vimeo' | 'website'
+    url: string
+    handle?: string
+  }[]
+}
+
+export async function getSiteSettings(client: SanityClient): Promise<SiteSettings | null> {
+  return await client.fetch(siteSettingsQuery)
 }
