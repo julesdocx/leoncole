@@ -60,7 +60,7 @@ export default function Card({
       className="p-2"
     >
       {/* Card row */}
-      <div className="flex gap-4 w-full sm:w-[500px]">
+      <div className="flex gap-4 ">
         {/* Stacked images */}
         {mainImageUrl && (
           <div className="w-56 flex-shrink-0 relative">
@@ -72,7 +72,7 @@ export default function Card({
               return (
                 <div
                   key={img._key || i}
-                  className="absolute w-full transition-all duration-200"
+                  className="absolute w-full transition-all duration-100"
                   style={{
                     top: offset,
                     left: -offset,
@@ -141,7 +141,7 @@ export default function Card({
             <span className={isHovered ? 'underline' : ''}>{isSelected ? 'Hide' : 'View'}</span>
             <ArrowUpRight 
               size={14} 
-              className={`transition-transform duration-200 ${isSelected ? 'rotate-90' : isHovered ? 'rotate-45' : ''}`}
+              className={`transition-transform duration-100 ${isSelected ? 'rotate-90' : isHovered ? 'rotate-45' : ''}`}
             />
           </button>
         </div>

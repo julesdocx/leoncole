@@ -18,17 +18,23 @@ export default function Header({ settings }: { settings: SiteSettings | null }) 
         {settings.email && (
           <a 
             href={`mailto:${settings.email}`}
-            className="text-sm flex items-center gap-1 hover:underline self-end py-0.5 px-2 border border-gray-300 hover:bg-gray-50"
+            className="group text-sm flex items-center gap-1 hover:underline text-xs self-end py-0.5 px-2 border border-gray-300 hover:bg-gray-50"
           >
-            {settings.email} <ArrowUpRight size={14} />
+            {settings.email} 
+            <ArrowUpRight 
+                size={14}
+                className={`transition-transform duration-100 group-hover:rotate-45`} />
           </a>
         )}
         {settings.phone && (
           <a 
             href={`tel:${settings.phone}`}
-            className="text-sm flex items-center gap-1 hover:underline self-end py-0.5 px-2 border border-gray-300 hover:bg-gray-50"
+            className="group text-sm flex items-center gap-1 hover:underline text-xs self-end py-0.5 px-2 border border-gray-300 hover:bg-gray-50"
           >
-            {settings.phone} <ArrowUpRight size={14} />
+            {settings.phone} 
+            <ArrowUpRight 
+                size={14}
+                className={`transition-transform duration-100 group-hover:rotate-45`} />
           </a>
         )}
         {settings.socials?.map((social, i) => {
@@ -38,9 +44,12 @@ export default function Header({ settings }: { settings: SiteSettings | null }) 
               href={social.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm flex items-center gap-1 hover:underline self-end py-0.5 px-2 border border-gray-300 hover:bg-gray-50"
+              className="group text-sm flex items-center gap-1 hover:underline text-xs self-end py-0.5 px-2 border border-gray-300 hover:bg-gray-50"
             >
-              {social.handle || social.platform} <ArrowUpRight size={14} />
+              {social.handle || social.platform}
+              <ArrowUpRight 
+                size={14}
+                className={`transition-transform duration-100 group-hover:rotate-45`} />
             </a>
           )
         })}

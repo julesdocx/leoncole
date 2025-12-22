@@ -76,7 +76,7 @@ export default function Lightbox({
             e.stopPropagation()
             goPrev()
             }}
-            className="absolute left-4 text-black border border-gray-300 p-2 hover:bg-gray-50  z-50"
+            className="absolute bottom-9 sm:bottom-auto left-4 text-black border border-gray-300 p-2 hover:bg-gray-50  z-50"
         >
             <ArrowLeft size={16} />
         </button>
@@ -116,7 +116,7 @@ export default function Lightbox({
         e.stopPropagation()
         goNext()
         }}
-        className="absolute right-4 text-black border border-gray-300 p-2 hover:bg-gray-50  z-50"
+        className="absolute bottom-9 sm:bottom-auto right-4 text-black border border-gray-300 p-2 hover:bg-gray-50  z-50"
     >
         <ArrowRight size={16} />
     </button>

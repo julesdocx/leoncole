@@ -164,7 +164,7 @@ export default function IndexPage({
                     <div
                       key={post._id}
                       onClick={() => selectPost(post)}
-                      className="cursor-pointer"
+                      className="cursor-pointer w-full  sm:w-[500px]"
                     >
                       <Card 
                         post={post} 
